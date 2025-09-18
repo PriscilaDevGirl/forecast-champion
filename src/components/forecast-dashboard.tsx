@@ -75,8 +75,8 @@ export function ForecastDashboard({ files, onDownload }: ForecastDashboardProps)
     },
     {
       title: "Total Predictions",
-      value: "45,820",
-      description: "5 semanas × PDVs × SKUs",
+      value: "50,000+",
+      description: "5 semanas × 50 PDVs × 200 SKUs",
       icon: <BarChart3 className="h-4 w-4" />,
     },
     {

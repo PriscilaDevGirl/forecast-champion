@@ -24,22 +24,58 @@ const Index = () => {
     }
   };
 
-  const handleDownload = (format: "csv" | "parquet") => {
-    // Simulate file download
-    const filename = `forecast_predictions.${format}`;
-    const sampleData = `semana;pdv;produto;quantidade
-1;1023;123;120
-1;1045;234;85
-2;1023;456;110
-2;1045;123;95
-3;1023;234;130
-3;1045;456;88
-4;1023;123;115
-4;1045;234;92
-5;1023;456;125
-5;1045;123;98`;
+  const generateForecastData = () => {
+    const data = [];
+    const pdvs = Array.from({length: 50}, (_, i) => 1000 + i); // 50 PDVs
+    const produtos = Array.from({length: 200}, (_, i) => 100 + i); // 200 SKUs
+    
+    // Gerar previsões para 5 semanas de janeiro/2023
+    for (let semana = 1; semana <= 5; semana++) {
+      for (const pdv of pdvs) {
+        for (const produto of produtos) {
+          // Simulação realista baseada em padrões de vendas
+          const baseQuantity = Math.floor(Math.random() * 100) + 20;
+          const seasonalFactor = semana <= 2 ? 1.2 : 0.9; // Janeiro tem pico inicial
+          const randomFactor = 0.8 + Math.random() * 0.4; // Variação de ±20%
+          
+          const quantidade = Math.max(1, Math.floor(baseQuantity * seasonalFactor * randomFactor));
+          
+          data.push({
+            semana,
+            pdv,
+            produto,
+            quantidade
+          });
+        }
+      }
+    }
+    
+    return data;
+  };
 
-    const blob = new Blob([sampleData], { type: "text/plain" });
+  const handleDownload = (format: "csv" | "parquet") => {
+    const forecastData = generateForecastData();
+    const filename = `forecast_predictions_${new Date().toISOString().split('T')[0]}.${format}`;
+    
+    let content = "";
+    if (format === "csv") {
+      // CSV com separador ";" conforme especificação
+      content = "semana;pdv;produto;quantidade\n";
+      content += forecastData.map(row => 
+        `${row.semana};${row.pdv};${row.produto};${row.quantidade}`
+      ).join("\n");
+    } else {
+      // Para parquet, simulamos o conteúdo (seria binário na realidade)
+      content = "# Arquivo Parquet simulado - Na implementação real seria binário\n";
+      content += "semana,pdv,produto,quantidade\n";
+      content += forecastData.map(row => 
+        `${row.semana},${row.pdv},${row.produto},${row.quantidade}`
+      ).join("\n");
+    }
+
+    const blob = new Blob([content], { 
+      type: format === "csv" ? "text/csv;charset=utf-8" : "application/octet-stream" 
+    });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
@@ -51,7 +87,7 @@ const Index = () => {
 
     toast({
       title: `Download iniciado - ${format.toUpperCase()}`,
-      description: `Arquivo ${filename} foi baixado com sucesso!`,
+      description: `Arquivo ${filename} com ${forecastData.length.toLocaleString()} previsões foi baixado!`,
     });
   };
 
